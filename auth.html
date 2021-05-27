@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>MS Auth</title>
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-auth.js"></script>
+  </head>
+  <body>
+    <h1 id="greet">Hi, please login</h1>
+    <button type="button" name="button" id="btn">Login</button>
+    <pre id="text"></pre>
+  </body>
+  <script src="https://clarity-yoga.web.app/__/firebase/init.js"></script>
+  <script type="text/javascript">
+  let provider;
+  document.addEventListener('DOMContentLoaded', () => {
+    provider = new firebase.auth.OAuthProvider('microsoft.com');
+    provider.setCustomParameters({
+      login_hint: '109458@niftarlake.nl'
+    });
+    provider.addScope('calendars.read');
+  });
+  document.getElementById('btn').addEventListener('click', () => {
+    firebase.auth().signInWithPopup(provider)
+      .then((result) => {
+        // IdP data available in result.additionalUserInfo.profile.
+        /** @type {firebase.auth.OAuthCredential} */
+        var credential = result.credential;
+        console.log(credential);
+        // OAuth access and id tokens can also be retrieved:
+        var accessToken = credential.accessToken;
+        var idToken = credential.idToken;
+        console.log("cred:", credential);
+        GetRes(accessToken);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  });
+  async function GetMe(token) {
+    let res = await fetch('https://graph.microsoft.com/v1.0/me', { headers: {
+      "Authorization":`Bearer ${token}`
+    }});
+    let resj = await res.json();
+    console.log("Me:", resj);
+    document.getElementById('greet').innerHTML = `Hi, ${resj.displayName}`;
+    document.getElementById('pre').innerHTML = resj;
+  }
+  async function GetEvents(token) {
+    let res = await fetch('https://graph.microsoft.com/v1.0/me/calendarview?startdatetime=2021-05-27T11:43:27.144Z&enddatetime=2021-06-03T11:43:27.144Z', { headers: {
+      "Authorization":`Bearer ${token}`
+    }});
+    let calj = await res.json();
+    console.log("MyCalendar:", calj);
+    let output = "";
+    let calender = calj["value"];
+    for (var i = 0; i < calender.length; i++) {
+      let eve = clandr[i];
+      output += `Je hebt om ${eve.start} een meeting over ${eve.subject} met ${eve.attendees[1].emailAddress.name} join hem <a herf="${onlineMeeting.joinUrl}">hier</a>`
+      if (i < calender.length) {
+        document.getElementById('pre').innerHTML = output;
+      }
+    }
+  }
+  </script>
+</html>

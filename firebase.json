@@ -11,7 +11,10 @@
       "firebase.json",
       "firebase-key.json",
       "commit",
-      "**/.*",
+      ".git/**",
+      ".github/**",
+      ".gitignore",
+      "ms-identity-javascript-v2-master/**",
       "**/node_modules/**"
     ]
   }
