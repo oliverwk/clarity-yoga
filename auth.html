@@ -20,19 +20,32 @@
 //      login_hint: 'email@microsoft.com'
     });
     provider.addScope('calendars.read');
+    /*
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        console.log("User:", user);
+        user.getIdToken().then(accessToken => {
+          console.log("accessToken:", accessToken);
+          if (GetMe(accessToken)) {
+            GetEvents(accessToken);
+          }
+        });
+      } else {
+        // User is signed out
+        console.info("User is signed out");
+      }
+    });*/
   });
   document.getElementById('btn').addEventListener('click', () => {
     firebase.auth().signInWithPopup(provider)
       .then((result) => {
-        // IdP data available in result.additionalUserInfo.profile.
-        /** @type {firebase.auth.OAuthCredential} */
-        var credential = result.credential;
-        console.log(credential);
-        // OAuth access and id tokens can also be retrieved:
-        var accessToken = credential.accessToken;
-        var idToken = credential.idToken;
+        console.log("Result:", result);
+        let credential = result.credential;
+        let accessToken = credential.accessToken;
         console.log("cred:", credential);
-        GetRes(accessToken);
+        if (GetMe(accessToken)) {
+          GetEvents(accessToken);
+        }
       })
       .catch((error) => {
         console.error(error);
@@ -45,7 +58,16 @@
     let resj = await res.json();
     console.log("Me:", resj);
     document.getElementById('greet').innerHTML = `Hi, ${resj.displayName}`;
-    document.getElementById('pre').innerHTML = resj;
+    document.getElementById('text').innerHTML = JSON.stringify(resj, null, 2);
+    let FotoRes = await fetch('https://graph.microsoft.com/v1.0/me/photo/$value', { headers: {
+      "Authorization":`Bearer ${token}`
+    }});
+    let resblob = await FotoRes.blob();
+    let url = URL.createObjectURL(resblob);
+    let img = new Image(75);
+    img.src = url;
+    document.body.appendChild(img);
+    return res.ok;
   }
   async function GetEvents(token) {
     let res = await fetch('https://graph.microsoft.com/v1.0/me/calendarview?startdatetime=2021-05-27T11:43:27.144Z&enddatetime=2021-06-03T11:43:27.144Z', { headers: {
@@ -59,7 +81,7 @@
       let eve = clandr[i];
       output += `Je hebt om ${eve.start} een meeting over ${eve.subject} met ${eve.attendees[1].emailAddress.name} join hem <a herf="${onlineMeeting.joinUrl}">hier</a>`
       if (i < calender.length) {
-        document.getElementById('pre').innerHTML = output;
+        document.getElementById('text').innerHTML = output;
       }
     }
   }
