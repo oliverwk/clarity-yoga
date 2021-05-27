@@ -1,2 +1,1 @@
 # clarity-yoga
-# clarity-yoga
