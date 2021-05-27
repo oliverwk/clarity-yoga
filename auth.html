@@ -17,7 +17,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     provider = new firebase.auth.OAuthProvider('microsoft.com');
     provider.setCustomParameters({
-      login_hint: '109458@niftarlake.nl'
+//      login_hint: 'email@microsoft.com'
     });
     provider.addScope('calendars.read');
   });
