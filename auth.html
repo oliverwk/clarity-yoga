@@ -9,16 +9,19 @@
   <body>
     <h1 id="greet">Hi, please login</h1>
     <button type="button" name="button" id="btn">Login</button>
-    <pre id="text"></pre>
+    <pre id="profile">profile</pre>
+    <pre id="text">txt</pre>
   </body>
   <script src="https://clarity-yoga.web.app/__/firebase/init.js"></script>
   <script type="text/javascript">
   let provider;
+  const options = { dateStyle: 'full', timeStyle: 'medium' };
   document.addEventListener('DOMContentLoaded', () => {
     provider = new firebase.auth.OAuthProvider('microsoft.com');
     provider.setCustomParameters({
 //      login_hint: 'email@microsoft.com'
     });
+
     provider.addScope('calendars.read');
     /*
     firebase.auth().onAuthStateChanged((user) => {
@@ -36,9 +39,9 @@
       }
     });*/
   });
+
   document.getElementById('btn').addEventListener('click', () => {
-    firebase.auth().signInWithPopup(provider)
-      .then((result) => {
+    firebase.auth().signInWithPopup(provider).then(result => {
         console.log("Result:", result);
         let credential = result.credential;
         let accessToken = credential.accessToken;
@@ -46,8 +49,7 @@
         if (GetMe(accessToken)) {
           GetEvents(accessToken);
         }
-      })
-      .catch((error) => {
+      }).catch(error => {
         console.error(error);
       });
   });
@@ -58,7 +60,7 @@
     let resj = await res.json();
     console.log("Me:", resj);
     document.getElementById('greet').innerHTML = `Hi, ${resj.displayName}`;
-    document.getElementById('text').innerHTML = JSON.stringify(resj, null, 2);
+    document.getElementById('profile').innerHTML = JSON.stringify(resj, null, 2);
     let FotoRes = await fetch('https://graph.microsoft.com/v1.0/me/photo/$value', { headers: {
       "Authorization":`Bearer ${token}`
     }});
@@ -78,8 +80,8 @@
     let output = "";
     let calender = calj["value"];
     for (var i = 0; i < calender.length; i++) {
-      let eve = clandr[i];
-      output += `Je hebt om ${eve.start} een meeting over ${eve.subject} met ${eve.attendees[1].emailAddress.name} join hem <a herf="${onlineMeeting.joinUrl}">hier</a>`
+      let eve = calender[i];
+      output += `<p>Je hebt ${new Intl.DateTimeFormat('nl-nl', options).format(new Date(eve.start.dateTime))} een meeting over ${JSON.stringify(eve.subject)} met ${eve.attendees.length > 1 ? JSON.stringify(eve.attendees[1].emailAddress.name) : "jezelf"} ${eve.onlineMeeting ? 'join hem <a href="'+JSON.stringify(eve.onlineMeeting.joinUrl)+'">hier</a>' : 'zonder teams maar bekijk de afspraak <a href="'+eve.webLink+'">hier</a>'}</p><br/>`
       if (i < calender.length) {
         document.getElementById('text').innerHTML = output;
       }
